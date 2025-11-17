@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carousel 3D trên nền Chữ Bay</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
+
+        /* --- CẤU HÌNH CHUNG --- */
+        body {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #000; /* Nền đen để hiện rõ hiệu ứng chữ */
+            font-family: 'Arial', sans-serif;
+            overflow: hidden; 
+        }
+
+        /* --- CẤU HÌNH BACKGROUND (CANVAS) --- */
+        #canvas {
+            position: absolute; /* Đặt cố định để làm nền */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0; /* Nằm dưới cùng */
+        }
+
+        /* --- CẤU HÌNH CAROUSEL (HÌNH ẢNH) --- */
+        
+        /* 1. Tạo không gian 3D (sân khấu) */
+        .scene {
+            width: 240px;
+            height: 180px;
+            perspective: 1000px;
+            position: relative; 
+            z-index: 2; /* QUAN TRỌNG: Nằm đè lên trên canvas */
+        }
+
+        /* 2. Tạo vòng tròn để chứa các ảnh */
+        .carousel {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            animation: rotate-carousel 25s linear infinite;
+        }
+
+        /* DỪNG KHI HOVER */
+        .scene:hover .carousel {
+            animation-play-state: paused;
+        }
+        
+        /* 3. Định dạng cho từng tấm ảnh */
+        .carousel-cell {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            width: 220px;
+            height: 160px;
+            transition: transform 0.5s ease, opacity 0.5s ease, box-shadow 0.5s ease;
+            /* Giữ backface-visibility để nhìn xuyên thấu hoặc ẩn tùy sở thích, ở đây tôi để visible để nhìn tự nhiên hơn trên nền đen */
+            backface-visibility: visible; 
+            border-radius: 8px;
+            overflow: hidden;
+            /* Đổi màu viền sáng cho nổi bật trên nền đen */
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            box-shadow: 0 0 15px rgba(10, 10, 10, 0.281);
+            background: rgba(0,0,0,0.8); /* Nền đen mờ cho ảnh */
+        }
+        
+        .carousel-cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* HOVER ẢNH ĐÓ LÊN */
+        .carousel-cell:hover {
+            transform: var(--transform) scale(1.2) translateZ(30px);
+            box-shadow: 0 0 30px rgba(255, 0, 150, 0.8); /* Đổi màu shadow sang hồng cho hợp theme */
+            z-index: 10;
+            border-color: #fff;
+        }
+
+        /* 4. Sắp xếp vị trí 9 ảnh */
+        .carousel-cell:nth-child(1) { --transform: rotateY(0deg) translateZ(320px); }
+        .carousel-cell:nth-child(2) { --transform: rotateY(40deg) translateZ(320px); }
+        .carousel-cell:nth-child(3) { --transform: rotateY(80deg) translateZ(320px); }
+        .carousel-cell:nth-child(4) { --transform: rotateY(120deg) translateZ(320px); }
+        .carousel-cell:nth-child(5) { --transform: rotateY(160deg) translateZ(320px); }
+        .carousel-cell:nth-child(6) { --transform: rotateY(200deg) translateZ(320px); }
+        .carousel-cell:nth-child(7) { --transform: rotateY(240deg) translateZ(320px); }
+        .carousel-cell:nth-child(8) { --transform: rotateY(280deg) translateZ(320px); }
+        .carousel-cell:nth-child(9) { --transform: rotateY(320deg) translateZ(320px); }
+
+        .carousel-cell {
+            transform: var(--transform);
+        }
+
+        @keyframes rotate-carousel {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="scene">
+        <div class="carousel">
+            <div class="carousel-cell"><img src="img/pin-1 (1).JPG" alt="Ảnh 1"></div>
+            <div class="carousel-cell"><img src="img/pin-1 (2).JPG" alt="Ảnh 2"></div>
+            <div class="carousel-cell"><img src="img/pin-1 (3).JPG" alt="Ảnh 3"></div>
+            <div class="carousel-cell"><img src="img/pin-1 (4).JPG" alt="Ảnh 4"></div>
+            <div class="carousel-cell"><img src="img/pin-1 (5).JPG" alt="Ảnh 5"></div>
+            <div class="carousel-cell"><img src="img/pin-1 (6).JPG" alt="Ảnh 6"></div>
+            <div class="carousel-cell"><img src="img/pin-1 (7).JPG" alt="Ảnh 7"></div>
+            <div class="carousel-cell"><img src="img/pin-1 (8).JPG" alt="Ảnh 8"></div>
+            <div class="carousel-cell"><img src="img/pin-1 (9).JPG" alt="Ảnh 9"></div>
+           
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let particles = [];
+
+        // DANH SÁCH CÁC CÂU CHÚC
+        const texts = [
+            "Chúc mưng sinh nhật vui vẻ!", 
+            "Cô nàng bận với công việc!", 
+            "Hãy suy nghĩ tích cực nhé!", 
+            "", 
+            "Happy Birthday!",
+            "Không phải thằng con trai nào cũng xấu đâu!",
+            "Thoáng lên nào!",
+        ];
+
+        const particleCount = 80; // Giảm nhẹ số lượng để không bị rối mắt khi xem ảnh
+        const baseColor = "hsla(330, 100%, 70%, "; 
+        const fontBaseSize = 20; 
+        
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = (Math.random() - 0.5) * width * 2;
+                this.y = (Math.random() - 0.5) * height * 2;
+                this.z = Math.random() * width; 
+                this.text = texts[Math.floor(Math.random() * texts.length)];
+                this.velocityZ = Math.random() * 1.5 + 0.5; // Giảm tốc độ bay một chút cho nhẹ nhàng
+            }
+
+            update() {
+                this.z -= this.velocityZ;
+                if (this.z <= 0) {
+                    this.reset();
+                    this.z = width; 
+                }
+            }
+
+            draw() {
+                const perspective = 300; 
+                const scale = perspective / (perspective + this.z);
+                
+                const screenX = this.x * scale + width / 2;
+                const screenY = this.y * scale + height / 2;
+                
+                if (screenX < 0 || screenX > width || screenY < 0 || screenY > height) return;
+
+                const currentFontSize = fontBaseSize * (1 / scale) * 0.5; 
+                const opacity = 1 - (this.z / width); 
+
+                ctx.font = `${currentFontSize}px 'Dancing Script', cursive`;
+                ctx.fillStyle = baseColor + opacity + ")";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#ff69b4";
+                
+                ctx.fillText(this.text, screenX, screenY);
+                
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function init() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            // Xóa màn hình bằng màu đen trong suốt để tạo vệt mờ (nếu muốn), ở đây dùng đen đặc
+            ctx.fillStyle = "black"; 
+            ctx.fillRect(0, 0, width, height); 
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
+    </script>
+
+</body>
+</html>
